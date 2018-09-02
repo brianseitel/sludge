@@ -14,7 +14,7 @@ import (
 type Connection struct {
 	Conn      net.Conn
 	Connected int
-	Character *game.Player
+	Character *game.Character
 	Host      string
 }
 
@@ -31,18 +31,30 @@ func (c Connection) Greet() {
 
 // LoadChar ...
 func (c *Connection) LoadChar(name string) {
-	c.Character = game.NewPlayer(name)
+	var err error
+	c.Character, err = game.LoadPlayerFile(name)
+	if err == nil {
+		c.Character.Exists = true
+	}
+	c.Character.Descriptor = c.Conn
+
+	if c.Character.InRoom == nil {
+		c.Character.InRoom = &game.Room{}
+	}
 }
 
-func (c Connection) Write(message string, args ...interface{}) {
+func (c Connection) Write(message string, args ...interface{}) string {
+	msg := fmt.Sprintf(message, args...)
 	c.Conn.Write(constants.EchoOn)
-	c.Conn.Write([]byte(fmt.Sprintf(message, args...)))
+	c.Conn.Write([]byte(msg))
+	return msg
 }
 
 // Read
 func (c Connection) Read() string {
 	message, _ := bufio.NewReader(c.Conn).ReadString('\n')
 	message = strings.Replace(message, "\r\n", "", -1)
+	message = strings.Replace(message, "\xff\xfd\x01", "", -1)
 
 	return message
 }

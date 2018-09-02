@@ -16,12 +16,13 @@ func NewServer() *Server {
 }
 
 // Start the server
-func (s *Server) Start() {
+func (s *Server) Start(host string) error {
 	var err error
-	s.Listener, err = net.Listen("tcp", "0.0.0.0:1234")
+	s.Listener, err = net.Listen("tcp", host)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	s.Down = false
+	return nil
 }

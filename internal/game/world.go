@@ -1,59 +1,40 @@
 package game
 
+import (
+	"sync"
+)
+
+var world *World
+var worldOnce sync.Once
+
 // World ...
 type World struct {
 	Wizlocked  bool
-	Characters []*Player
+	Characters []*Character
+	Rooms      map[int]*Room
+	Mobs       map[int]*Mob
+	Helps      map[string]*Help
 }
 
-type Player struct {
-	Name   string
-	Banned bool
-	Exists bool
+// NewWorld ...
+func NewWorld() *World {
+	worldOnce.Do(func() {
+		world = &World{
+			Wizlocked: false,
+			Rooms:     make(map[int]*Room, 0),
+			Mobs:      make(map[int]*Mob, 0),
+			Helps:     make(map[string]*Help, 0),
+		}
 
-	Password string
+		// TODO: set weather
 
-	Sex   int
-	Class *Class
+		LoadAreas()
+	})
 
-	Level int
-	XP    int
-
-	HP      int
-	MaxHP   int
-	Mana    int
-	MaxMana int
-	Move    int
-	MaxMove int
+	return world
 }
 
-// NewPlayer ...
-func NewPlayer(name string) *Player {
-	return &Player{
-		Name:    name,
-		Level:   0,
-		MaxHP:   100,
-		MaxMana: 100,
-		MaxMove: 100,
-	}
+// GetWorld ...
+func GetWorld() *World {
+	return world
 }
-
-// Class ...
-type Class struct {
-	Name    string
-	WhoName string
-}
-
-// Classes ...
-var Classes = []Class{
-	Class{
-		Name:    "Warrior",
-		WhoName: "war",
-	},
-	Class{
-		Name:    "Mage",
-		WhoName: "mag",
-	},
-}
-
-var MOTD = "Welcome!!!\n"

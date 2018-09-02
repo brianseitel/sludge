@@ -16,11 +16,11 @@ var world *game.World
 var gameServer *server.Server
 
 func main() {
-	world = &game.World{
-		Wizlocked: false,
-	}
+	world = game.NewWorld()
 	gameServer = server.NewServer()
-	gameServer.Start()
+	host := "0.0.0.0:1234"
+	gameServer.Start(host)
+	log.Printf("Listening on %s\n", host)
 
 	go ticker()
 
@@ -64,6 +64,7 @@ func loop(conn server.Connection) {
 	}
 }
 
+// This is going to be the background loop for the game
 func ticker() {
 	t := time.NewTicker(time.Second * 5)
 	go func() {
@@ -73,6 +74,7 @@ func ticker() {
 	}()
 }
 
+// Deals with sockets that haven't logged in yet
 func nanny(conn *server.Connection, input string) {
 	ch := conn.Character
 
@@ -105,7 +107,7 @@ func nanny(conn *server.Connection, input string) {
 
 		if ch.Exists {
 			// ask for password
-			conn.Write("Password: ", constants.EchoOff)
+			conn.Write("Password: %s", constants.EchoOff)
 			conn.Connected = constants.GetOldPassword
 		} else {
 			// new player
@@ -114,7 +116,7 @@ func nanny(conn *server.Connection, input string) {
 		}
 
 	case constants.GetOldPassword:
-		if input != ch.Password {
+		if input != ch.PCData.Password {
 			conn.Write("Wrong password.%s", constants.EOL)
 			conn.Conn.Close()
 			return
@@ -127,6 +129,7 @@ func nanny(conn *server.Connection, input string) {
 			return
 		}
 
+		conn.Write("%s", constants.EchoOn)
 		log.Printf("%s has connected.%s", ch.Name, constants.EOL)
 		// show MOTD
 		conn.Connected = constants.ReadMOTD
@@ -158,14 +161,14 @@ func nanny(conn *server.Connection, input string) {
 			conn.Write("Password: %s", constants.EchoOff)
 		}
 
-		ch.Password = pwd
+		ch.PCData.Password = pwd
 		conn.Write(constants.EOL)
 		conn.Write("Please retype password: %s", constants.EchoOff)
 		conn.Connected = constants.ConfirmNewPassword
 
 	case constants.ConfirmNewPassword:
 		newPwd, err := crypt(input)
-		if err != nil || newPwd != ch.Password {
+		if err != nil || newPwd != ch.PCData.Password {
 			conn.Write(constants.EOL)
 			conn.Write("Passwords don't match.%s", constants.EOL)
 			conn.Write("Password: %s", constants.EchoOff)
@@ -193,11 +196,13 @@ func nanny(conn *server.Connection, input string) {
 
 		conn.Write(constants.EOL)
 		conn.Write("Select a class: [")
-		for i, class := range game.Classes {
+		i := 0
+		for _, class := range game.Classes {
 			if i > 0 {
 				conn.Write(" ")
 			}
 			conn.Write(class.WhoName)
+			i++
 		}
 		conn.Write("]: ")
 		conn.Connected = constants.GetNewClass
@@ -222,19 +227,47 @@ func nanny(conn *server.Connection, input string) {
 		conn.Connected = constants.ReadMOTD
 
 	case constants.ReadMOTD:
+		conn.Write("%s", constants.EchoOff)
 		conn.Write(game.MOTD)
 
 		world.Characters = append(world.Characters, conn.Character)
 		conn.Connected = constants.Playing
 
 		if ch.Level == 0 {
+			switch game.Classes[ch.Class.WhoName].PrimeAttribute {
+			case constants.Strength:
+				ch.PCData.PermanentStrength = 16
+			case constants.Intelligence:
+				ch.PCData.PermanentIntelligence = 16
+			case constants.Wisdom:
+				ch.PCData.PermanentWisdom = 16
+			case constants.Dexterity:
+				ch.PCData.PermanentDexterity = 16
+			case constants.Constitution:
+				ch.PCData.PermanentConstitution = 16
+			}
+
 			ch.Level = 1
 			ch.XP = 1000
 
 			ch.Mana = ch.MaxMana
 			ch.HP = ch.MaxHP
 			ch.Move = ch.MaxMove
+
+			ch.Title = game.Titles[ch.Class.WhoName][ch.Level][ch.Sex]
+
+			// TODO: create objects: banner, vest, shield, class weapon
+			// TODO: wear wield
+			// TODO: move to school
+			ch.ToRoom(game.Rooms[constants.VnumRoomSchool])
+		} else if ch.InRoom != nil {
+			ch.ToRoom(ch.InRoom)
+		} else {
+			ch.ToRoom(game.Rooms[constants.VnumRoomTemple])
 		}
+
+		game.Notify("$n has entered the game.", ch, constants.ActToRoom, game.ActOptions{})
+		ch.Do("look")
 	}
 }
 
