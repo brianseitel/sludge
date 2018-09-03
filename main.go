@@ -17,6 +17,8 @@ var gameServer *server.Server
 
 func main() {
 	world = game.NewWorld()
+	game.LoadAreas()
+
 	gameServer = server.NewServer()
 	host := "0.0.0.0:1234"
 	gameServer.Start(host)
@@ -259,11 +261,11 @@ func nanny(conn *server.Connection, input string) {
 			// TODO: create objects: banner, vest, shield, class weapon
 			// TODO: wear wield
 			// TODO: move to school
-			ch.ToRoom(game.Rooms[constants.VnumRoomSchool])
+			ch.ToRoom(world.Rooms[constants.VnumRoomSchool])
 		} else if ch.InRoom != nil {
 			ch.ToRoom(ch.InRoom)
 		} else {
-			ch.ToRoom(game.Rooms[constants.VnumRoomTemple])
+			ch.ToRoom(world.Rooms[constants.VnumRoomTemple])
 		}
 
 		game.Notify("$n has entered the game.", ch, constants.ActToRoom, game.ActOptions{})

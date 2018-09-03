@@ -255,7 +255,7 @@ func ConvertPlayerFileToCharacter(name string, data string) *Character {
 					obj.Values = append(obj.Values, readNumber(v))
 				}
 			case "Vnum":
-				_, ok := Objects[readNumber(value)]
+				_, ok := world.Objects[readNumber(value)]
 				if !ok {
 					log.Println("load object: vnum not found")
 					break

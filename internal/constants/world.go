@@ -10,3 +10,14 @@ const (
 	ActToCharacter
 	ActToNotVictim
 )
+
+// Mob ACT Constants
+const (
+	ActIsNPC = iota
+)
+
+// Item Extra Flags
+
+const (
+	ItemNoDrop = iota
+)

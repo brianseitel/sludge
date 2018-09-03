@@ -55,9 +55,6 @@ const (
 	ItemMoney
 )
 
-// Objects master list
-var Objects = map[int]Object{}
-
 // FromChar ...
 func (obj *Object) FromChar() {
 	if obj.CarriedBy == nil {

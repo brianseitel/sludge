@@ -11,9 +11,13 @@ var worldOnce sync.Once
 type World struct {
 	Wizlocked  bool
 	Characters []*Character
-	Rooms      map[int]*Room
-	Mobs       map[int]*Mob
-	Helps      map[string]*Help
+	Areas      []*Area
+	Shops      []*Shop
+
+	Rooms   map[int]*Room
+	Mobs    map[int]*Mob
+	Helps   map[string]*Help
+	Objects map[int]*Object
 }
 
 // NewWorld ...
@@ -24,11 +28,10 @@ func NewWorld() *World {
 			Rooms:     make(map[int]*Room, 0),
 			Mobs:      make(map[int]*Mob, 0),
 			Helps:     make(map[string]*Help, 0),
+			Objects:   make(map[int]*Object, 0),
 		}
 
 		// TODO: set weather
-
-		LoadAreas()
 	})
 
 	return world

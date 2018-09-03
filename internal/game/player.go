@@ -143,7 +143,8 @@ func (c *Character) Equip(obj *Object, location constants.WearLocation) {
 	}
 }
 
-func (c *Character) GetItemFromLocation(loc constants.WearLocation) *Object {
+// ItemFromLocation ...
+func (c *Character) ItemFromLocation(loc constants.WearLocation) *Object {
 	for _, obj := range c.Carrying {
 		if obj.WearLocation == constants.WearLight {
 			return obj
@@ -194,7 +195,7 @@ func (c *Character) ToRoom(room *Room) {
 
 	// TODO: detect PCs, add to area list
 
-	if obj := c.GetItemFromLocation(constants.WearLight); obj != nil && obj.ItemType == ItemLight && obj.Values[2] != 0 {
+	if obj := c.ItemFromLocation(constants.WearLight); obj != nil && obj.ItemType == ItemLight && obj.Values[2] != 0 {
 		c.InRoom.Light++
 	}
 }
