@@ -48,15 +48,22 @@ func LoadAreas() {
 	_, b, _, _ := runtime.Caller(0)
 	basepath := filepath.Dir(b) + "/../../"
 
-	areaFiles, _ := filepath.Glob(basepath + "areas/*.are")
+	list, err := ioutil.ReadFile(basepath + "areas/area.lst")
+	if err != nil {
+		panic(err)
+	}
+
+	areaFiles := strings.Split(string(list), "\n")
 
 	for _, file := range areaFiles {
-		f, err := ioutil.ReadFile(file)
+		if file == "$" {
+			break
+		}
+		f, err := ioutil.ReadFile(basepath + "areas/" + file)
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println(file)
 		load(f)
 	}
 }
@@ -77,50 +84,39 @@ func load(f []byte) {
 
 		switch w {
 		case "#AREA":
-			fmt.Println("\t", w)
 			area = LoadArea(p)
+			fmt.Printf("Loading %s\n", area.Name)
 		case "#HELPS":
-			fmt.Println("\t", w)
 			LoadHelps(p)
 		case "#MOBILES":
-			fmt.Println("\t", w)
 			LoadMobiles(p)
 		case "#OBJECTS":
-			fmt.Println("\t", w)
 			LoadObjects(p)
 		case "#ROOMS":
-			fmt.Println("\t", w)
 			LoadRooms(p, area)
 		case "#RESETS":
-			fmt.Println("\t", w)
 			LoadResets(p, area)
 		case "#SPECIALS":
-			fmt.Println("\t", w)
 			LoadSpecials(p)
 		case "#SHOPS":
-			fmt.Println("\t", w)
 			LoadShops(p)
 		case "#$":
-			fmt.Println("done")
 			break
 		}
 	}
-	// os.Exit(1)
-	// fmt.Println(p.letter())
-	// fmt.Println(p.word())
-	// fmt.Println(p.line())
-	// fmt.Println(p.eol())
 }
 
+// LoadArea ...
 func LoadArea(p *Parser) *Area {
 	area := &Area{}
-	area.Name = p.line()
+	area.Name = strings.Trim(p.line(), " ")
 	area.Age = 15
 	area.NumPlayers = 0
-	fmt.Println(area.Name)
+
 	return area
 }
 
+// LoadHelps ...
 func LoadHelps(p *Parser) {
 	for {
 		help := &Help{}
@@ -136,6 +132,7 @@ func LoadHelps(p *Parser) {
 	}
 }
 
+// LoadMobiles ...
 func LoadMobiles(p *Parser) {
 	p.trim()
 	for {
@@ -144,7 +141,6 @@ func LoadMobiles(p *Parser) {
 		l := p.letter()
 		if l != "#" {
 			p.UnreadByte()
-			fmt.Println("line", p.line())
 			log.Fatalf("load mobiles: expected #, got %s", l)
 		}
 
@@ -170,20 +166,21 @@ func LoadMobiles(p *Parser) {
 		p.letter() // throwaway i think?
 		mob.Level = helpers.Fuzzy(p.number())
 
-		p.word()
-		p.word()
-		p.word()
-		p.word()
-		p.word()
-		p.word()
-		p.word()
-		p.word()
+		p.number() // hitroll
+		p.number() // ac
+		p.number() // hitnodice
+		p.number() // hitsizedize
+		p.number() // hitplus
+		p.number() // damnodice
+		p.number() // damsizedice
+		p.number() // damplus
 		mob.Sex = p.number()
 
 		world.Mobs[vnum] = mob
 	}
 }
 
+// LoadShops ...
 func LoadShops(p *Parser) {
 	p.trim()
 	for {
@@ -203,12 +200,17 @@ func LoadShops(p *Parser) {
 		shop.OpenHour = p.number()
 		shop.CloseHour = p.number()
 
-		mob := world.Mobs[shop.Keeper]
+		mob, ok := world.Mobs[shop.Keeper]
+		if !ok {
+			log.Fatalf("load shops: keeper not found")
+			continue
+		}
 		mob.Shop = shop
 		world.Shops = append(world.Shops, shop)
 	}
 }
 
+// LoadObjects ...
 func LoadObjects(p *Parser) {
 	p.trim()
 	for {
@@ -288,6 +290,7 @@ func LoadObjects(p *Parser) {
 	}
 }
 
+// LoadRooms ...
 func LoadRooms(p *Parser, area *Area) {
 	for {
 		p.trim()
@@ -369,6 +372,7 @@ func LoadRooms(p *Parser, area *Area) {
 	}
 }
 
+// LoadResets ...
 func LoadResets(p *Parser, area *Area) {
 	p.trim()
 	for {
@@ -401,6 +405,7 @@ func LoadResets(p *Parser, area *Area) {
 	}
 }
 
+// LoadSpecials ...
 func LoadSpecials(p *Parser) {
 	for {
 		p.trim()
@@ -485,6 +490,12 @@ func (p *Parser) number() int {
 		}
 	}
 
+	word = strings.ToLower(word)
+
+	if word[0] == '+' {
+		word = word[1:]
+	}
+
 	if strings.Contains(word, "|") {
 		parts := strings.Split(word, "|")
 		num := 0
@@ -500,16 +511,14 @@ func (p *Parser) number() int {
 		diceParts := strings.Split(parts[0], "d")
 		numDice, _ := strconv.Atoi(diceParts[0])
 		sides, _ := strconv.Atoi(diceParts[1])
-		plus, _ := strconv.Atoi(parts[2])
+		plus, _ := strconv.Atoi(parts[1])
 
-		fmt.Println(word)
 		return numDice*sides + plus
 	}
 
 	num, err := strconv.Atoi(word)
 	if err != nil {
 		return 0
-		// panic(err)
 	}
 	return num
 }
