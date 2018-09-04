@@ -68,6 +68,93 @@ func LoadAreas() {
 	}
 }
 
+func (a *Area) Reset() {
+	for _, reset := range a.Resets {
+		switch reset.Command {
+		case "M":
+			mobIndex, ok := world.Mobs[reset.Arg1]
+			if !ok {
+				log.Printf("reset area: 'M': bad vnum %d\n", reset.Arg1)
+				continue
+			}
+
+			room, ok := world.Rooms[reset.Arg3]
+			if !ok {
+				log.Printf("reset area: 'R': bad vnum %d", reset.Arg3)
+				continue
+			}
+
+			// level := rand.Intn(mobIndex.Level)
+			if mobIndex.Count > reset.Arg2 {
+				break
+			}
+
+			mob := &Mob{
+				Vnum:             mobIndex.Vnum,
+				Name:             mobIndex.Name,
+				ShortDescription: mobIndex.ShortDescription,
+				LongDescription:  mobIndex.LongDescription,
+				Description:      mobIndex.Description,
+
+				Act:        mobIndex.Act,
+				AffectedBy: mobIndex.AffectedBy,
+				Shop:       mobIndex.Shop,
+				Alignment:  mobIndex.Alignment,
+				Level:      mobIndex.Level,
+				Sex:        mobIndex.Sex,
+				SpecFun:    mobIndex.SpecFun,
+
+				InRoom: room,
+			}
+
+			mob.ToRoom(room)
+
+			// TODO: Check for darkness
+
+		case "O":
+			obj, ok := world.Objects[reset.Arg1]
+			if !ok {
+				log.Println("reset area: 'O': bad vnum", reset.Arg1)
+				continue
+			}
+
+			room, ok := world.Rooms[reset.Arg3]
+			if !ok {
+				log.Println("reset area: 'R': bad vnum", reset.Arg3)
+				continue
+			}
+
+			object := &Object{
+				Name:             obj.Name,
+				Cost:             obj.Cost,
+				Description:      obj.Description,
+				ExtraFlags:       obj.ExtraFlags,
+				ItemType:         obj.ItemType,
+				Level:            obj.Level,
+				ShortDescription: obj.ShortDescription,
+				Timer:            obj.Timer,
+				Values:           obj.Values,
+				WearFlags:        obj.WearFlags,
+				WearLocation:     obj.WearLocation,
+				Weight:           obj.Weight,
+				Vnum:             obj.Vnum,
+				indexData:        obj.indexData,
+
+				CarriedBy: obj.CarriedBy,
+				InRoom:    room,
+				InObject:  obj.InObject,
+
+				Affected: obj.Affected,
+			}
+
+			object.Cost = 0
+			object.ToRoom(room)
+
+		case "P":
+		}
+	}
+}
+
 func load(f []byte) {
 	buf := bytes.NewBuffer(f)
 	p := &Parser{buf}

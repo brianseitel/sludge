@@ -86,6 +86,27 @@ func (obj *Object) ToChar(char *Character) {
 	char.CarryWeight += obj.Weight
 }
 
+// FromRoom ...
+func (obj *Object) FromRoom() {
+	if obj.InRoom == nil {
+		log.Println("char from room: null room")
+		return
+	}
+
+	for i, item := range obj.InRoom.Contents {
+		if item == obj {
+			obj.InRoom.Contents = append(obj.InRoom.Contents[:i], obj.InRoom.Contents[i+1:]...)
+			break
+		}
+	}
+
+	// if obj := m.ItemFromLocation(constants.WearLight); obj != nil && obj.ItemType == ItemLight && obj.Values[2] != 0 {
+	// 	o.InRoom.Light--
+	// }
+
+	obj.InRoom = nil
+}
+
 // CreateObject ...
 func CreateObject(index *Object, level int) *Object {
 	if index == nil {

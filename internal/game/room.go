@@ -6,6 +6,7 @@ type Room struct {
 
 	Vnum     int
 	People   []*Character
+	Mobs     []*Mob
 	Contents []*Object
 	Light    int
 

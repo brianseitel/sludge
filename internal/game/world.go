@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math/rand"
 	"sync"
 )
 
@@ -40,4 +41,19 @@ func NewWorld() *World {
 // GetWorld ...
 func GetWorld() *World {
 	return world
+}
+
+// UpdateAreas ...
+func (w *World) UpdateAreas() {
+	for _, a := range w.Areas {
+		a.Age++
+		if a.Age < 3 {
+			continue
+		}
+
+		if a.NumPlayers == 0 && a.Age >= 15 {
+			a.Reset()
+			a.Age = rand.Intn(3)
+		}
+	}
 }

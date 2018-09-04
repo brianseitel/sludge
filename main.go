@@ -74,6 +74,7 @@ func ticker() {
 	go func() {
 		for t := range t.C {
 			fmt.Println("Tick at", t)
+			world.UpdateAreas()
 		}
 	}()
 }
