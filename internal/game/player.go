@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"log"
 	"net"
 
@@ -41,14 +42,14 @@ type Character struct {
 	ShortDescription string
 	LongDescrition   string
 
-	PCData  *PCData
-	HP      int
-	MaxHP   int
-	Mana    int
-	MaxMana int
-	Move    int
-	MaxMove int
-	Wimpy   int
+	PCData      *PCData
+	HP          int
+	MaxHP       int
+	Mana        int
+	MaxMana     int
+	Movement    int
+	MaxMovement int
+	Wimpy       int
 
 	InRoom *Room
 
@@ -93,11 +94,11 @@ func NewCharacter(name string, desc net.Conn) *Character {
 
 		Sex: constants.SexMale,
 
-		Name:    name,
-		Level:   0,
-		MaxHP:   100,
-		MaxMana: 100,
-		MaxMove: 100,
+		Name:        name,
+		Level:       0,
+		MaxHP:       100,
+		MaxMana:     100,
+		MaxMovement: 100,
 
 		PCData: &PCData{},
 		InRoom: NewRoom(),
@@ -143,6 +144,12 @@ func (c *Character) Equip(obj *Object, location constants.WearLocation) {
 	}
 }
 
+// Interpret ...
+func (c *Character) Interpret(args string) {
+	interpreter := NewInterpreter(c, args)
+	interpreter.Do()
+}
+
 // ItemFromLocation ...
 func (c *Character) ItemFromLocation(loc constants.WearLocation) *Object {
 	for _, obj := range c.Carrying {
@@ -178,9 +185,32 @@ func (c *Character) IsImmortal() bool {
 	return false
 }
 
-// Do ... TODO: finish
-func (c *Character) Do(command string) {
+// Send message to char
+func (c *Character) Send(message string, args ...interface{}) {
+	if c.Descriptor != nil {
+		c.Descriptor.Write([]byte(fmt.Sprintf(message, args...)))
+	}
+}
 
+// FromRoom ...
+func (c *Character) FromRoom() {
+	if c.InRoom == nil {
+		log.Println("char from room: null room")
+		return
+	}
+
+	for i, person := range c.InRoom.People {
+		if person == c {
+			c.InRoom.People = append(c.InRoom.People[:i], c.InRoom.People[i+1:]...)
+			break
+		}
+	}
+
+	if obj := c.ItemFromLocation(constants.WearLight); obj != nil && obj.ItemType == ItemLight && obj.Values[2] != 0 {
+		c.InRoom.Light--
+	}
+
+	c.InRoom = nil
 }
 
 // ToRoom ...

@@ -155,8 +155,8 @@ func ConvertPlayerFileToCharacter(name string, data string) *Character {
 				ch.MaxHP = readNumber(attrs[1])
 				ch.Mana = readNumber(attrs[2])
 				ch.MaxMana = readNumber(attrs[3])
-				ch.Move = readNumber(attrs[4])
-				ch.MaxMove = readNumber(attrs[5])
+				ch.Movement = readNumber(attrs[4])
+				ch.MaxMovement = readNumber(attrs[5])
 			case "Level":
 				ch.Level = readNumber(value)
 			case "LongDescr":

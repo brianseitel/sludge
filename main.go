@@ -51,8 +51,10 @@ func loop(conn server.Connection) {
 		input := conn.Read()
 
 		if conn.Connected == constants.Playing {
-			conn.Interpret(input)
+			interpreter := game.NewInterpreter(conn.Character, input)
+			interpreter.Do()
 		} else {
+			// Handle connections that aren't logged in
 			nanny(&conn, input)
 		}
 
@@ -251,10 +253,11 @@ func nanny(conn *server.Connection, input string) {
 
 			ch.Level = 1
 			ch.XP = 1000
+			ch.Position = constants.PositionStanding
 
 			ch.Mana = ch.MaxMana
 			ch.HP = ch.MaxHP
-			ch.Move = ch.MaxMove
+			ch.Movement = ch.MaxMovement
 
 			ch.Title = game.Titles[ch.Class.WhoName][ch.Level][ch.Sex]
 
@@ -269,7 +272,7 @@ func nanny(conn *server.Connection, input string) {
 		}
 
 		game.Notify("$n has entered the game.", ch, constants.ActToRoom, game.ActOptions{})
-		ch.Do("look")
+		ch.Interpret("look")
 	}
 }
 

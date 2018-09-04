@@ -23,12 +23,6 @@ func TestCharIsImmortal(t *testing.T) {
 }
 
 // TODO: Finish this test
-func TestCharDo(t *testing.T) {
-	char := game.NewCharacter("Bob", nil)
-	char.Do("something")
-}
-
-// TODO: Finish this test
 func TestCharSeenBy(t *testing.T) {
 	char := game.NewCharacter("Bob", nil)
 	other := game.NewCharacter("Jack", nil)

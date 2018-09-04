@@ -21,3 +21,12 @@ const (
 const (
 	ItemNoDrop = iota
 )
+
+const (
+	DirNorth = iota
+	DirEast
+	DirSouth
+	DirWest
+	DirUp
+	DirDown
+)

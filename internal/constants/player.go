@@ -41,3 +41,21 @@ const (
 	WearWield
 	WearHold
 )
+
+// positions
+const (
+	PositionDead = iota
+	PositionMortal
+	PositionIncapactitated
+	PositionStunned
+	PositionSleeping
+	PositionResting
+	PositionFighting
+	PositionStanding
+)
+
+// affects
+const (
+	PlayerFoo = iota
+	PlayerNoEmote
+)

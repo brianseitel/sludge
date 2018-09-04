@@ -324,7 +324,6 @@ func LoadRooms(p *Parser, area *Area) {
 		room.Flags = p.number()
 		room.SectorType = p.number()
 		room.Light = 0
-		room.Exits = make([]*Exit, 6)
 		for d := 0; d <= 5; d++ {
 			room.Exits[d] = nil
 		}

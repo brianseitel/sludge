@@ -14,7 +14,7 @@ type Room struct {
 	ExtraDescription string
 	Flags            int
 	SectorType       int
-	Exits            []*Exit
+	Exits            [6]*Exit
 }
 
 // Exit ...
@@ -32,6 +32,7 @@ type Exit struct {
 const (
 	ExitIsDoor    = 1
 	ExitPickProof = 2
+	ExitIsClosed  = 3
 )
 
 // NewRoom ...
